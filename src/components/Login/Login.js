@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import Card from '../UI/Card/Card';
 import classes from './Login.module.css';
@@ -11,20 +11,37 @@ const Login = (props) => {
   const [passwordIsValid, setPasswordIsValid] = useState();
   const [formIsValid, setFormIsValid] = useState(false);
 
+  // new useEffect behavior
+  // change handlers register keystroke changes to email/pwd
+  // useEffect only reruns when 1 of those changes, ex when those values actually change
+  // not every time function reruns
+
+  useEffect(() => {
+    // setTimeout built into JS
+    // result of using return from useEffect:
+    // in conjunction with setTimeout, it limits the amount of overall sideEffect hook calls we make
+    // ex., if these were HTTP requests, we'd only make them when keystrokes died after 500ms - reducing them greatly
+    const identifier = setTimeout(() => {
+      console.log('checking form validity!');
+      setFormIsValid(
+        enteredEmail.includes('@') && enteredPassword.trim().length > 6
+      );
+    }, 500);
+
+    // cleanup fn --- resets timer, only if timer reaches > 500 at end of keystrokes
+    // will identifier trigger entirely (bc 500 is 2nd arg)
+    return () => {
+      console.log('CLEANUP');
+      clearTimeout(identifier);
+    }
+  }, [enteredEmail, enteredPassword]);
+
   const emailChangeHandler = (event) => {
     setEnteredEmail(event.target.value);
-
-    setFormIsValid(
-      event.target.value.includes('@') && enteredPassword.trim().length > 6
-    );
   };
 
   const passwordChangeHandler = (event) => {
     setEnteredPassword(event.target.value);
-
-    setFormIsValid(
-      event.target.value.trim().length > 6 && enteredEmail.includes('@')
-    );
   };
 
   const validateEmailHandler = () => {
